@@ -1,2 +1,2 @@
 # AIA_projects
-## This project contain examples of OpenCV with python3
+## This project contain examples of text prediction with python3
