@@ -51,13 +51,13 @@ print("Optimization of items prediction: {}".format(it.optimization_prediction_i
 print("Validation of items predictions: {}".format(it.prediction_item(0, len(t_user_items) - 1,
                                                                       t_user_items, threshold)))
 print()
-limits_elements_reads = 10
+limits_elements_reads = 4
 support_min = 2
 file2 = "retail.dat"
-print("Wait for the operations:")
-transactions = sh.read_transactions_file_with_recommendation(directory + file2, limits_elements_reads, support_min)
-print("transactions: {}".format(transactions))
-first = sh.first_candidate(transactions, support_min)
-print("First candidate: {}".format(first))
-generator = sh.candidate_generator(first)
-print("Candidate generator: {}".format(sh.candidate_generator(first)))
+
+t = ['1 3 4', '2 3 5', '1 2 3 5', '2 5']
+print("Apriori algorithm {}".format(sh.Apriori_algorithm(directory, file2, limits_elements_reads, support_min, t)))
+print()
+
+t = None
+print("Apriori algorithm {}".format(sh.Apriori_algorithm(directory, file2, limits_elements_reads, support_min, t)))
