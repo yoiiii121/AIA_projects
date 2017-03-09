@@ -28,21 +28,6 @@ def optimization_prediction_item(pos_item, table, threshold):
             value = sim_item(table[pos_item], table[j])
             if threshold <= value:
                 similarity.append([value, j])
-    # sort = []
-    # size_similarity = len(similarity)
-
-    # for i in range(size_similarity):
-    #    max_number = -2.0
-    #    position = -2
-    #    for j in range(len(similarity)):
-    #        value = similarity[j][0]
-    #        if value >=max_number:
-    #            max_number = value
-    #            position = j
-    #            if threshold <= value:
-    #                sort.append([value,similarity[j][1]])
-    #   similarity[position] = [-1.0,position]
-    # return sort
     return similarity
 
 

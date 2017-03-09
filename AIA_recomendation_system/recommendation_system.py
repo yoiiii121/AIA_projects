@@ -53,11 +53,14 @@ print("Validation of items predictions: {}".format(it.prediction_item(0, len(t_u
 print()
 limits_elements_reads = 4
 support_min = 2
+confidence_min = 3
 file2 = "retail.dat"
 
 t = ['1 3 4', '2 3 5', '1 2 3 5', '2 5']
-print("Apriori algorithm {}".format(sh.Apriori_algorithm(directory, file2, limits_elements_reads, support_min, t)))
+print("Apriori algorithm {}".format(sh.apriori_algorithm(directory, file2,
+                                                         limits_elements_reads, support_min, confidence_min, t)))
 print()
 
 t = None
-print("Apriori algorithm {}".format(sh.Apriori_algorithm(directory, file2, limits_elements_reads, support_min, t)))
+print("Apriori algorithm {}".format(sh.apriori_algorithm(directory, file2,
+                                                         limits_elements_reads, support_min, confidence_min, t)))

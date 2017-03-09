@@ -41,6 +41,7 @@ def read_data_file_with_recommendation(route, limits):
     create_table = []
     for _ in set_items:
         create_table_line = []
+        # noinspection PyAssignmentToLoopOrWithParameter
         for _ in set_users:
             create_table_line.append(0)
         create_table.append(create_table_line)
@@ -50,9 +51,6 @@ def read_data_file_with_recommendation(route, limits):
             index_i = item[items[j]]
             create_table[index_i][index_u] = int(validations[j])
     return create_table
-
-
-transactions = {}
 
 
 def read_transactions_file_with_recommendation(route, limits, support_min):

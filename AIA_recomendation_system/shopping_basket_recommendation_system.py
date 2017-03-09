@@ -28,17 +28,17 @@ def first_candidate(transactions_list, support_min):
 
 
 def string_sort(string):
-    string = string.split(" ")
-    size = len(string)
+    string_l = string.split(" ")
+    size = len(string_l)
     cad = ""
     for i in range(size):
-        minimun = 99999
-        for k in range(len(string)):
+        minimum = 99999
+        for k in range(len(string_l)):
 
-            if str(string[k]) != "" and int(string[k]) <= int(minimun):
-                minimun = string[k]
-        string.remove(minimun)
-        cad += str(minimun) + " "
+            if str(string_l[k]) != "" and int(string_l[k]) <= int(minimum):
+                minimum = string_l[k]
+        string_l.remove(minimum)
+        cad += str(minimum) + " "
     return cad[0:len(cad) - 1]
 
 
@@ -50,12 +50,11 @@ def candidate_generator(candidates_list):
         for i in range(len(key_list) - 1):
             for j in range(i + 1, len(key_list)):
                 generate.append(string_sort(str(key_list[i]) + " " + str(key_list[j])))
-    aux = []
     for i in range(len(generate)):
         aux = []
         cad = ""
         for j in generate[i].split(" "):
-            if not j in aux:
+            if j not in aux:
                 aux.append(j)
                 cad += j + " "
 
@@ -87,10 +86,49 @@ def candidates_filter(candidates_list, transactions_list, support_min, step):
     return dict_transactions
 
 
-def Apriori_algorithm(dir, f, limits_elements_reads, support_min, t):
+def association_rules(candidates_all_matches, transactions_, confidence_min):
+    dict_association = {}
+    for i in range(len(candidates_all_matches)):
+        for j in candidates_all_matches[i].keys():
+            for k in candidates_all_matches[0].keys():
+                if j != k:
+                    dict_association[j] = k
+    aux = []
+    for i, j in dict_association.items():
+        for i1 in i.split(" "):
+            if i1 in j:
+                aux.append(i)
+
+    for i in aux:
+        del dict_association[i]
+
+    dict_support = {}
+
+    for j, k in dict_association.items():
+        cont_ext = 0
+        for i in transactions_:
+
+            cont = 0
+            for i1 in i.split(" "):
+                if i1 in j or i1 in k:
+                    cont += 1
+                else:
+                    cont = 0
+            if cont == len(j) + len(k) - 2:
+                cont_ext += 1
+        if confidence_min <= cont_ext:
+            dict_support[j + " " + k] = cont_ext
+    return dict_support
+
+
+def apriori_algorithm(dir_name, f, limits_elements_reads, support_min, confidence_min, t):
     k = 0
-    transactions = []
-    candidates = ["a"]
+    if t is None:
+        transactions = read_transactions_file_with_recommendation(dir_name + f, limits_elements_reads)
+    else:
+        transactions = t
+    print("Transactions: {}".format(transactions))
+    candidates = {"a"}
     candidates_all_matches = []
     while candidates != {}:
         if k != 0:
@@ -102,14 +140,11 @@ def Apriori_algorithm(dir, f, limits_elements_reads, support_min, t):
             candidates_all_matches.append(candidates)
         else:
             print("Wait for the operations:")
-
-            if t is None:
-                transactions = read_transactions_file_with_recommendation(dir + f, limits_elements_reads)
-            else:
-                transactions = t
-            print("transactions: {}".format(transactions))
             candidates = first_candidate(transactions, support_min)
             print("Candidate: {}".format(candidates))
             candidates_all_matches.append(candidates)
         k += 1
-    return candidates_all_matches
+    print("Frequent values: {}".format(candidates_all_matches))
+    association = association_rules(candidates_all_matches, transactions, confidence_min)
+    print("Association rules: {}:".format(association))
+    return association
