@@ -53,7 +53,7 @@ print("Validation of items predictions: {}".format(it.prediction_item(0, len(t_u
 print()
 limits_elements_reads = 4
 support_min = 2
-confidence_min = 3
+confidence_min = 1
 file2 = "retail.dat"
 
 t = ['1 3 4', '2 3 5', '1 2 3 5', '2 5']

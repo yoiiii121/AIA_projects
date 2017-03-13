@@ -116,8 +116,8 @@ def association_rules(candidates_all_matches, transactions_, confidence_min):
                     cont = 0
             if cont == len(j) + len(k) - 2:
                 cont_ext += 1
-        if confidence_min <= cont_ext:
-            dict_support[j + " " + k] = cont_ext
+        if confidence_min <= round(cont_ext/len(transactions_)):
+            dict_support[j + " " + k] = round(cont_ext/len(transactions_))
     return dict_support
 
 
