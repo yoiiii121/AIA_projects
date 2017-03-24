@@ -9,112 +9,109 @@ from nltk.corpus import stopwords
 import re
 import unicodedata
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from nltk.stem import SnowballStemmer
 
-vectorizer = TfidfVectorizer(min_df=1,smooth_idf = False,strip_accents="ascii",lowercase=True)
-corpus = ["Juan quiere comprar un coche. Ana no quiere comprar ningún coche"]
-print(vectorizer)
+corpus1 = ["Juan quiere comprar un coche. Ana no quiere comprar ningún coche"]
+corpus2 =["Cargamento de oro dañado por el fuego",
+         "la entrega de la plata llegó en un  camión de plata",
+         "El cargamento de oro llegó en un camión"]
+corpus3 = ["Éste texto no tiene nada que ver con los demás",
+           "la plata fue entregada en camiones color plata",
+           "El cargamento de oro llegó en un camión. El cargamento de oro llegó en un camión. El cargamento de oro llegó en un camión",
+           "Cargamentos de oro dañados por el fuego",
+           "El cargamento de oro llegó en un camión"]
 
-print("Using simple way")
-#Simple model
-vectorizer.norm = None
-#vectorizer.use_idf = False
-vectorizer_fit = vectorizer.fit_transform(corpus)
-print(vectorizer_fit)
-print(vectorizer.get_feature_names())
+corpus = corpus3
 
-#Simple model with normalized euclidean distance
-vectorizer.norm ='l2'
-vectorizer.use_idf = True
-vectorizer.smooth_idf = True
-vectorizer.sublinear_tf = False
-vectorizer_fit = vectorizer.fit_transform(corpus)
-print(vectorizer_fit)
-print(vectorizer.get_feature_names())
-
-#Simple model with normalized coseno distance
-vectorizer.norm ='l1'
-vectorizer_fit = vectorizer.fit_transform(corpus)
-print(vectorizer_fit)
-print(vectorizer.get_feature_names())
-
-
-
-print()
-print()
-#Using stop words
-print("Using stop words")
-vectorizer.stop_words =stopwords.words('spanish')
 
 
 #Simple model
-vectorizer.norm = None
-#vectorizer.use_idf = False
-vectorizer_fit = vectorizer.fit_transform(corpus)
-print(vectorizer_fit)
-print(vectorizer.get_feature_names())
+def simple_configuation(vectorizer):
+    print("Using simple way")
+    vectorizer.norm = None
+    return vectorizer
+def euclidean_configuation(vectorizer):
+    # Simple model with normalized euclidean distance
+    print("Using normalized euclidean distance")
+    vectorizer.norm = 'l2'
+    vectorizer.use_idf = True
+    vectorizer.smooth_idf = True
+    vectorizer.sublinear_tf = False
+    return vectorizer
+def cosine_configuration(vectorizer):
+    # Simple model with normalized coseno distance
+    vectorizer.norm = 'l1'
+    vectorizer.use_idf = True
+    vectorizer.smooth_idf = True
+    vectorizer.sublinear_tf = False
+    return vectorizer
 
-#Simple model with normalized euclidean distance
-vectorizer.norm ='l2'
-vectorizer.use_idf = True
-vectorizer.smooth_idf = True
-vectorizer.sublinear_tf = False
-vectorizer_fit = vectorizer.fit_transform(corpus)
-print(vectorizer_fit)
-print(vectorizer.get_feature_names())
+def stop_words_configuration(vectorizer, configuration):
+    # Using stop words
+    print("Using stop words")
+    vectorizer.stop_words = stopwords.words('spanish')
+    vectorizer = configuration(vectorizer)
+    return vectorizer
 
-#Simple model with normalized coseno distance
-vectorizer.norm ='l1'
-vectorizer_fit = vectorizer.fit_transform(corpus)
-print(vectorizer_fit)
-print(vectorizer.get_feature_names())
+# Taking root words
+def taking_root_words_configuration(vectorizer, configuration):
+    print("Taking root words")
+    vectorizer = stop_words_configuration(vectorizer,configuration)
+    stemmer = SnowballStemmer("spanish")
+    vectorizer.vocabulary = set([stemmer.stem(i) for i in vectorizer.get_feature_names()])
+    return vectorizer
 
-print()
-print("TO-DO: tomando raices de palabras")
-print("TO-DO: tomando raices de palabras")
-print("TO-DO: tomando raices de palabras")
+def tfidf_configuration(vectorizer,configuration):
+    print("Using tfidf")
+    vectorizer = taking_root_words_configuration(vectorizer, configuration)
+    vectorizer.use_idf =True
+    return vectorizer
 
-#Using tfidf
-print()
-print()
-print("Using tfidf")
-vectorizer.tfidf =True
+def training(corpus,vectorizer):
+    print(vectorizer)
+    # vectorizer.use_idf = False
+    vectorizer_fit = vectorizer.fit_transform(corpus)
+    print(vectorizer_fit)
+    print(vectorizer.get_feature_names())
 
+vectorizer = TfidfVectorizer(min_df=1, smooth_idf=False, use_idf=False)
 
-#Simple model
-vectorizer.norm = None
-#vectorizer.use_idf = False
-vectorizer_fit = vectorizer.fit_transform(corpus)
-print(vectorizer_fit)
-print(vectorizer.get_feature_names())
+simple_configuation(vectorizer)
+training(corpus,vectorizer)
 
-#Simple model with normalized euclidean distance
-vectorizer.norm ='l2'
-vectorizer.use_idf = True
-vectorizer.smooth_idf = True
-vectorizer.sublinear_tf = False
-vectorizer_fit = vectorizer.fit_transform(corpus)
-print(vectorizer_fit)
-print(vectorizer.get_feature_names())
+euclidean_configuation(vectorizer)
+training(corpus,vectorizer)
 
-#Simple model with normalized coseno distance
-vectorizer.norm ='l1'
-vectorizer_fit = vectorizer.fit_transform(corpus)
-print(vectorizer_fit)
-print(vectorizer.get_feature_names())
+cosine_configuration(vectorizer)
+training(corpus,vectorizer)
 
+stop_words_configuration(vectorizer,simple_configuation)
+training(corpus,vectorizer)
 
-#def elimina_tildes(s):
-#    return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
+stop_words_configuration(vectorizer,euclidean_configuation)
+training(corpus,vectorizer)
 
+stop_words_configuration(vectorizer,cosine_configuration)
+training(corpus,vectorizer)
 
-#text = re.findall(r"[A-Za-zÁ-Úá-ú]+", elimina_tildes(str(corpus)))
+taking_root_words_configuration(vectorizer,simple_configuation)
+training(corpus,vectorizer)
 
-# In the python console, you need to input nltk.download()
-#print(stopwords.words('spanish'))
-#stw = [ word for word in text if word not in stopwords.words('spanish') ]
-#print(stw)
+taking_root_words_configuration(vectorizer,euclidean_configuation)
+training(corpus,vectorizer)
 
-print()
+taking_root_words_configuration(vectorizer,cosine_configuration)
+training(corpus,vectorizer)
+
+tfidf_configuration(vectorizer,simple_configuation)
+training(corpus,vectorizer)
+
+tfidf_configuration(vectorizer,euclidean_configuation)
+training(corpus,vectorizer)
+
+tfidf_configuration(vectorizer,cosine_configuration)
+training(corpus,vectorizer)
+
 
 
 
