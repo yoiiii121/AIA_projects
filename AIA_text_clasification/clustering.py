@@ -67,6 +67,7 @@ def tfidf_configuration(vectorizer, configuration):
     vectorizer = taking_root_words_configuration(vectorizer, configuration)
     vectorizer.smooth_idf = True
     vectorizer.use_idf = True
+    vectorizer.sublinear_tf = True
     return vectorizer
 
 
