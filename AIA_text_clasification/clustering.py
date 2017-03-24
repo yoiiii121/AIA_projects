@@ -1,15 +1,10 @@
 import random as ra
 
 import numpy as np
-from sklearn.datasets import load_iris
-import scipy.sparse as sc
-
-
 from nltk.corpus import stopwords
-import re
-import unicodedata
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from nltk.stem import SnowballStemmer
+from sklearn.datasets import load_iris
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 corpus1 = ["Juan quiere comprar un coche. Ana no quiere comprar ningún coche"]
 corpus2 =["Cargamento de oro dañado por el fuego",
@@ -28,21 +23,21 @@ corpus = corpus3
 #Simple model
 def simple_configuation(vectorizer):
     print("Using simple way")
+    vectorizer.use_idf = False
     vectorizer.norm = None
     return vectorizer
 def euclidean_configuation(vectorizer):
     # Simple model with normalized euclidean distance
     print("Using normalized euclidean distance")
     vectorizer.norm = 'l2'
-    vectorizer.use_idf = True
-    vectorizer.smooth_idf = True
+    vectorizer.use_idf = False
     vectorizer.sublinear_tf = False
     return vectorizer
 def cosine_configuration(vectorizer):
-    # Simple model with normalized coseno distance
+    # Simple model with normalized cosino distance
+    print("Using normalized cosino distance")
     vectorizer.norm = 'l1'
-    vectorizer.use_idf = True
-    vectorizer.smooth_idf = True
+    vectorizer.use_idf = False
     vectorizer.sublinear_tf = False
     return vectorizer
 
@@ -64,15 +59,15 @@ def taking_root_words_configuration(vectorizer, configuration):
 def tfidf_configuration(vectorizer,configuration):
     print("Using tfidf")
     vectorizer = taking_root_words_configuration(vectorizer, configuration)
+    vectorizer.smooth_idf = True
     vectorizer.use_idf =True
     return vectorizer
 
 def training(corpus,vectorizer):
-    print(vectorizer)
-    # vectorizer.use_idf = False
+    print("Final configuration of vectorizer: \n{}".format(vectorizer))
     vectorizer_fit = vectorizer.fit_transform(corpus)
-    print(vectorizer_fit)
-    print(vectorizer.get_feature_names())
+    print("ID vectorizer: \n{}" .format(vectorizer_fit))
+    print("names process in the corpus: \n{}".format(vectorizer.get_feature_names()))
 
 vectorizer = TfidfVectorizer(min_df=1, smooth_idf=False, use_idf=False)
 
@@ -111,11 +106,6 @@ training(corpus,vectorizer)
 
 tfidf_configuration(vectorizer,cosine_configuration)
 training(corpus,vectorizer)
-
-
-
-
-
 
 data = load_iris()
 data2 = [[51], [43], [62], [64], [45], [42], [46], [45], [45], [62], [47], [52], [64], [51], [65], [48], [49],
@@ -229,4 +219,3 @@ print("Euclidean distance: {}".format(k_my_kmedias(k, data['data'][:, 0:3], dist
 print("Manhattan distance: {}".format(k_my_kmedias(k, data['data'][:, 0:3], distance_manhattan, iterations)))
 print("Maximo distance: {}".format(k_my_kmedias(k, data['data'][:, 0:3], distance_maximo, iterations)))
 print("Hamming distance: {}".format(k_my_kmedias(k, data['data'][:, 0:3], distance_hamming, iterations)))
-
