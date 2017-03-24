@@ -7,9 +7,9 @@ from sklearn.datasets import load_iris
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 corpus1 = ["Juan quiere comprar un coche. Ana no quiere comprar ningún coche"]
-corpus2 =["Cargamento de oro dañado por el fuego",
-         "la entrega de la plata llegó en un  camión de plata",
-         "El cargamento de oro llegó en un camión"]
+corpus2 = ["Cargamento de oro dañado por el fuego",
+           "la entrega de la plata llegó en un  camión de plata",
+           "El cargamento de oro llegó en un camión"]
 corpus3 = ["Éste texto no tiene nada que ver con los demás",
            "la plata fue entregada en camiones color plata",
            "El cargamento de oro llegó en un camión. El cargamento de oro llegó en un camión. El cargamento de oro llegó en un camión",
@@ -19,13 +19,14 @@ corpus3 = ["Éste texto no tiene nada que ver con los demás",
 corpus = corpus3
 
 
-
-#Simple model
+# Simple model
 def simple_configuation(vectorizer):
     print("Using simple way")
     vectorizer.use_idf = False
     vectorizer.norm = None
     return vectorizer
+
+
 def euclidean_configuation(vectorizer):
     # Simple model with normalized euclidean distance
     print("Using normalized euclidean distance")
@@ -33,6 +34,8 @@ def euclidean_configuation(vectorizer):
     vectorizer.use_idf = False
     vectorizer.sublinear_tf = False
     return vectorizer
+
+
 def cosine_configuration(vectorizer):
     # Simple model with normalized cosino distance
     print("Using normalized cosino distance")
@@ -41,6 +44,7 @@ def cosine_configuration(vectorizer):
     vectorizer.sublinear_tf = False
     return vectorizer
 
+
 def stop_words_configuration(vectorizer, configuration):
     # Using stop words
     print("Using stop words")
@@ -48,64 +52,68 @@ def stop_words_configuration(vectorizer, configuration):
     vectorizer = configuration(vectorizer)
     return vectorizer
 
+
 # Taking root words
 def taking_root_words_configuration(vectorizer, configuration):
     print("Taking root words")
-    vectorizer = stop_words_configuration(vectorizer,configuration)
+    vectorizer = stop_words_configuration(vectorizer, configuration)
     stemmer = SnowballStemmer("spanish")
     vectorizer.vocabulary = set([stemmer.stem(i) for i in vectorizer.get_feature_names()])
     return vectorizer
 
-def tfidf_configuration(vectorizer,configuration):
+
+def tfidf_configuration(vectorizer, configuration):
     print("Using tfidf")
     vectorizer = taking_root_words_configuration(vectorizer, configuration)
     vectorizer.smooth_idf = True
-    vectorizer.use_idf =True
+    vectorizer.use_idf = True
     return vectorizer
 
-def training(corpus,vectorizer):
+
+def training(corpus, vectorizer):
     print("Final configuration of vectorizer: \n{}".format(vectorizer))
     vectorizer_fit = vectorizer.fit_transform(corpus)
-    print("ID vectorizer: \n{}" .format(vectorizer_fit))
+    print("ID vectorizer: \n{}".format(vectorizer_fit))
     print("names process in the corpus: \n{}".format(vectorizer.get_feature_names()))
+
 
 vectorizer = TfidfVectorizer(min_df=1, smooth_idf=False, use_idf=False)
 
 simple_configuation(vectorizer)
-training(corpus,vectorizer)
+training(corpus, vectorizer)
 
 euclidean_configuation(vectorizer)
-training(corpus,vectorizer)
+training(corpus, vectorizer)
 
 cosine_configuration(vectorizer)
-training(corpus,vectorizer)
+training(corpus, vectorizer)
 
-stop_words_configuration(vectorizer,simple_configuation)
-training(corpus,vectorizer)
+stop_words_configuration(vectorizer, simple_configuation)
+training(corpus, vectorizer)
 
-stop_words_configuration(vectorizer,euclidean_configuation)
-training(corpus,vectorizer)
+stop_words_configuration(vectorizer, euclidean_configuation)
+training(corpus, vectorizer)
 
-stop_words_configuration(vectorizer,cosine_configuration)
-training(corpus,vectorizer)
+stop_words_configuration(vectorizer, cosine_configuration)
+training(corpus, vectorizer)
 
-taking_root_words_configuration(vectorizer,simple_configuation)
-training(corpus,vectorizer)
+taking_root_words_configuration(vectorizer, simple_configuation)
+training(corpus, vectorizer)
 
-taking_root_words_configuration(vectorizer,euclidean_configuation)
-training(corpus,vectorizer)
+taking_root_words_configuration(vectorizer, euclidean_configuation)
+training(corpus, vectorizer)
 
-taking_root_words_configuration(vectorizer,cosine_configuration)
-training(corpus,vectorizer)
+taking_root_words_configuration(vectorizer, cosine_configuration)
+training(corpus, vectorizer)
 
-tfidf_configuration(vectorizer,simple_configuation)
-training(corpus,vectorizer)
+tfidf_configuration(vectorizer, simple_configuation)
+training(corpus, vectorizer)
 
-tfidf_configuration(vectorizer,euclidean_configuation)
-training(corpus,vectorizer)
+tfidf_configuration(vectorizer, euclidean_configuation)
+training(corpus, vectorizer)
 
-tfidf_configuration(vectorizer,cosine_configuration)
-training(corpus,vectorizer)
+tfidf_configuration(vectorizer, cosine_configuration)
+training(corpus, vectorizer)
 
 data = load_iris()
 data2 = [[51], [43], [62], [64], [45], [42], [46], [45], [45], [62], [47], [52], [64], [51], [65], [48], [49],
