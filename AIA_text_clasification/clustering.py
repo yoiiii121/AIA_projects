@@ -3,8 +3,9 @@ import random as ra
 import numpy as np
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris,fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
 
 corpus1 = ["Juan quiere comprar un coche. Ana no quiere comprar ningún coche"]
 corpus2 = ["Cargamento de oro dañado por el fuego",
@@ -16,7 +17,17 @@ corpus3 = ["Éste texto no tiene nada que ver con los demás",
            "Cargamentos de oro dañados por el fuego",
            "El cargamento de oro llegó en un camión"]
 
-corpus = corpus3
+
+categories = ['comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware',
+'comp.sys.mac.hardware', 'comp.windows.x', 'sci.space']
+
+#twenty_new=fetch_20newsgroups(subset='train', categories=categories)
+
+corpus = corpus2
+lenguage = "spanish"
+
+#corpus = twenty_new.data
+
 
 
 # Simple model
@@ -57,7 +68,7 @@ def stop_words_configuration(vectorizer, configuration):
 def taking_root_words_configuration(vectorizer, configuration):
     print("Taking root words")
     vectorizer = stop_words_configuration(vectorizer, configuration)
-    stemmer = SnowballStemmer("spanish")
+    stemmer = SnowballStemmer(lenguage)
     vectorizer.vocabulary = set([stemmer.stem(i) for i in vectorizer.get_feature_names()])
     return vectorizer
 
@@ -73,7 +84,9 @@ def tfidf_configuration(vectorizer, configuration):
 
 def training(corpus, vectorizer):
     print("Final configuration of vectorizer: \n{}".format(vectorizer))
-    vectorizer_fit = vectorizer.fit_transform(corpus)
+    vectorizer_fit = vectorizer.fit_transform(corpus).toarray().tolist()
+    kmeans = KMeans(n_clusters=2, random_state=0).fit(vectorizer_fit)
+    print(kmeans.cluster_centers_)
     print("ID vectorizer: \n{}".format(vectorizer_fit))
     print("names process in the corpus: \n{}".format(vectorizer.get_feature_names()))
 
