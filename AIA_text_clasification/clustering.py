@@ -5,8 +5,11 @@ from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from sklearn.datasets import load_iris,fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import KMeans
-
+import scipy.sparse
+from sklearn import metrics
+import time
 corpus1 = ["Juan quiere comprar un coche. Ana no quiere comprar ningún coche"]
 corpus2 = ["Cargamento de oro dañado por el fuego",
            "la entrega de la plata llegó en un  camión de plata",
@@ -21,14 +24,19 @@ corpus3 = ["Éste texto no tiene nada que ver con los demás",
 categories = ['comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware',
 'comp.sys.mac.hardware', 'comp.windows.x', 'sci.space']
 
-#twenty_new=fetch_20newsgroups(subset='train', categories=categories)
+twenty_new=fetch_20newsgroups(subset='train', categories=categories)
 
-corpus = corpus2
-lenguage = "spanish"
+#       corpus = corpus1
+#corpus = corpus2
+#corpus = corpus3
+#lenguage = "spanish"
+lenguage = "english"
+limit = 100
+corpus = twenty_new.data[:limit]
 
-#corpus = twenty_new.data
-
-
+file = open("output.txt","w+")
+file.write("Numbers of elements: {}\n\n".format(limit))
+file.close()
 
 # Simple model
 def simple_configuation(vectorizer):
@@ -52,7 +60,7 @@ def cosine_configuration(vectorizer):
     print("Using normalized cosino distance")
     vectorizer.norm = 'l1'
     vectorizer.use_idf = False
-    vectorizer.sublinear_tf = False
+    vectorizer.sublinear_tf = True
     return vectorizer
 
 
@@ -83,13 +91,53 @@ def tfidf_configuration(vectorizer, configuration):
 
 
 def training(corpus, vectorizer):
-    print("Final configuration of vectorizer: \n{}".format(vectorizer))
-    vectorizer_fit = vectorizer.fit_transform(corpus).toarray().tolist()
-    kmeans = KMeans(n_clusters=2, random_state=0).fit(vectorizer_fit)
-    print(kmeans.cluster_centers_)
-    print("ID vectorizer: \n{}".format(vectorizer_fit))
-    print("names process in the corpus: \n{}".format(vectorizer.get_feature_names()))
+    file = open("output.txt","a+")
 
+
+    print("Final configuration of vectorizer:\n{}".format(vectorizer))
+    file.write("\nFinal configuration of vectorizer:\n{}".format(vectorizer))
+
+    t0 = time.time()
+    vectorizer_fit = vectorizer.fit_transform(corpus).toarray().tolist()
+    kmeans = KMeans(n_clusters=30, init= "k-means++", random_state=0, precompute_distances="auto", max_iter=100, algorithm = "auto" ,n_jobs = -2,tol=0.0).fit(vectorizer_fit)
+    label = kmeans.labels_
+
+    print("Cluster centers:\n{}".format(kmeans.cluster_centers_))
+    #file.write("Cluster centers:\n{}".format(kmeans.cluster_centers_))
+
+    print("ID vectorizer:\n{}".format(vectorizer_fit))
+    #file.write("ID vectorizer:\n{}".format(vectorizer_fit))
+
+    predict = kmeans.predict(vectorizer_fit)
+    print("Predict class:\n{}".format(predict))
+    file.write("\nPredict class:\n{}".format(predict))
+    print("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
+    #file.write("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
+
+
+    print("Kmeans score: \n{}".format(kmeans.score(vectorizer_fit,predict)))
+    file.write("\nKmeans score: \n{}".format(kmeans.score(vectorizer_fit,predict)))
+
+    print("Adjusted score: \n{}".format(metrics.adjusted_rand_score(label,predict)))
+    file.write("\nAdjusted score: \n{}".format(metrics.adjusted_rand_score(label, predict)))
+
+    print("Adjusted mutual info score: \n{}".format(metrics.adjusted_mutual_info_score(label, predict)))
+    file.write("\nAdjusted mutual info score: \n{}".format(metrics.adjusted_mutual_info_score(label, predict)))
+
+    print("homogenity score: \n{}".format(metrics.homogeneity_score(kmeans.labels_, predict)))
+    file.write("\nhomogenity score: \n{}".format(metrics.homogeneity_score(kmeans.labels_, predict)))
+
+    print("V measure score: \n{}".format(metrics.v_measure_score(kmeans.labels_, predict)))
+    file.write("\nV measure score: \n{}".format(metrics.v_measure_score(kmeans.labels_, predict)))
+
+    print("Completeness score: \n{}".format(metrics.completeness_score(kmeans.labels_, predict)))
+    file.write("\nCompleteness score: \n{}".format(metrics.completeness_score(kmeans.labels_, predict)))
+
+    print("Operations performant\n{}".format(time.time()-t0))
+    file.write("\nOperations performant\n{}\n".format(time.time()-t0))
+    file.close()
+    print()
+    print()
 
 vectorizer = TfidfVectorizer(min_df=1, smooth_idf=False, use_idf=False)
 
