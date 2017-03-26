@@ -1,15 +1,16 @@
 import random as ra
+import time
 
 import numpy as np
+import scipy.sparse
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
-from sklearn.datasets import load_iris,fetch_20newsgroups
+from sklearn import metrics
+from sklearn.cluster import KMeans
+from sklearn.datasets import load_iris, fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.cluster import KMeans
-import scipy.sparse
-from sklearn import metrics
-import time
+
 corpus1 = ["Juan quiere comprar un coche. Ana no quiere comprar ningún coche"]
 corpus2 = ["Cargamento de oro dañado por el fuego",
            "la entrega de la plata llegó en un  camión de plata",
@@ -20,23 +21,34 @@ corpus3 = ["Éste texto no tiene nada que ver con los demás",
            "Cargamentos de oro dañados por el fuego",
            "El cargamento de oro llegó en un camión"]
 
-
 categories = ['comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware',
-'comp.sys.mac.hardware', 'comp.windows.x', 'sci.space']
+              'comp.sys.mac.hardware', 'comp.windows.x', 'sci.space']
 
-twenty_new=fetch_20newsgroups(subset='train', categories=categories)
+twenty_new = fetch_20newsgroups(subset='train', categories=categories)
 
 #       corpus = corpus1
-#corpus = corpus2
-#corpus = corpus3
-#lenguage = "spanish"
+# corpus = corpus2
+# corpus = corpus3
+# lenguage = "spanish"
 lenguage = "english"
 limit = 10
 corpus = twenty_new.data[:limit]
 
-file = open("output.txt","w+")
+file = open("output.txt", "w+")
 file.write("Numbers of elements: {}\n\n".format(len(corpus)))
 file.close()
+
+
+def simility_cosine(v, w):
+    total = 0.0
+    total1 = 0.0
+    total2 = 0.0
+    for i in range(len(v)):
+        total += (v[i] * w[i])
+        total1 += v[i] ** 2
+        total2 += w[i] ** 2
+    return total / (np.sqrt(total1) * np.sqrt(total2))
+
 
 # Simple model
 def simple_configuation(vectorizer):
@@ -91,34 +103,33 @@ def tfidf_configuration(vectorizer, configuration):
 
 
 def training(corpus, vectorizer):
-    file = open("output.txt","a+")
-
+    file = open("output.txt", "a+")
 
     print("Final configuration of vectorizer:\n{}".format(vectorizer))
     file.write("\nFinal configuration of vectorizer:\n{}".format(vectorizer))
 
     t0 = time.time()
     vectorizer_fit = vectorizer.fit_transform(corpus).toarray().tolist()
-    kmeans = KMeans(n_clusters=3, init= "k-means++", random_state=0, precompute_distances="auto", max_iter=100, algorithm = "auto" ,n_jobs = -2,tol=0.0).fit(vectorizer_fit)
+    kmeans = KMeans(n_clusters=3, init="k-means++", random_state=0, precompute_distances="auto", max_iter=100,
+                    algorithm="auto", n_jobs=-2, tol=0.0).fit(vectorizer_fit)
     label = kmeans.labels_
 
     print("Cluster centers:\n{}".format(kmeans.cluster_centers_))
-    #file.write("Cluster centers:\n{}".format(kmeans.cluster_centers_))
+    # file.write("Cluster centers:\n{}".format(kmeans.cluster_centers_))
 
     print("ID vectorizer:\n{}".format(vectorizer_fit))
-    #file.write("ID vectorizer:\n{}".format(vectorizer_fit))
+    # file.write("ID vectorizer:\n{}".format(vectorizer_fit))
 
     predict = kmeans.predict(vectorizer_fit)
     print("Predict class:\n{}".format(predict))
     file.write("\nPredict class:\n{}".format(predict))
     print("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
-    #file.write("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
+    # file.write("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
 
+    print("Kmeans score: \n{}".format(kmeans.score(vectorizer_fit, predict)))
+    file.write("\nKmeans score: \n{}".format(kmeans.score(vectorizer_fit, predict)))
 
-    print("Kmeans score: \n{}".format(kmeans.score(vectorizer_fit,predict)))
-    file.write("\nKmeans score: \n{}".format(kmeans.score(vectorizer_fit,predict)))
-
-    print("Adjusted score: \n{}".format(metrics.adjusted_rand_score(label,predict)))
+    print("Adjusted score: \n{}".format(metrics.adjusted_rand_score(label, predict)))
     file.write("\nAdjusted score: \n{}".format(metrics.adjusted_rand_score(label, predict)))
 
     print("Adjusted mutual info score: \n{}".format(metrics.adjusted_mutual_info_score(label, predict)))
@@ -133,11 +144,12 @@ def training(corpus, vectorizer):
     print("Completeness score: \n{}".format(metrics.completeness_score(kmeans.labels_, predict)))
     file.write("\nCompleteness score: \n{}".format(metrics.completeness_score(kmeans.labels_, predict)))
 
-    print("Operations performant\n{}".format(time.time()-t0))
-    file.write("\nOperations performant\n{}\n".format(time.time()-t0))
+    print("Operations performant\n{}".format(time.time() - t0))
+    file.write("\nOperations performant\n{}\n".format(time.time() - t0))
     file.close()
     print()
     print()
+
 
 vectorizer = TfidfVectorizer(min_df=1, smooth_idf=False, use_idf=False)
 
@@ -183,45 +195,39 @@ data2 = [[51], [43], [62], [64], [45], [42], [46], [45], [45], [62], [47], [52],
          [65], [46], [39], [62], [64], [52], [63], [64], [48], [64], [48], [51], [48], [64], [42], [48], [41]]
 
 
-def distance_euclidean(data, mean_value):
-    total = 0
-    for i in range(0, len(data)):
-        total += (data[i] - mean_value[i]) ** 2
-    return np.sqrt(total)
-
-
-def distance_manhattan(data, mean_value):
-    total = 0
-    for i in range(0, len(data)):
-        total += np.fabs(data[i] - mean_value[i])
-    return total
-
-
-def distance_maximo(data, mean_value):
-    total = 0
-    for i in range(0, len(data)):
-        aux = np.fabs(data[i] - mean_value[i])
-        if total < aux:
-            total = aux
-    return total
-
-
-def distance_hamming(data, mean_value):
-    return (np.array(data) != np.array(mean_value)).mean()
-
-
-
-
-
 class my_kmedias():
     def __init__(self, data):
         self.data = data
         self.groups = []
-    def mean(self,list_elem):
+
+    def mean(self, list_elem):
         total = 0
         for i in list_elem:
             total += i
         return total / len(list_elem)
+
+    def distance_euclidean(self, data, mean_value):
+        total = 0
+        for i in range(0, len(data)):
+            total += (data[i] - mean_value[i]) ** 2
+        return np.sqrt(total)
+
+    def distance_manhattan(self, data, mean_value):
+        total = 0
+        for i in range(0, len(data)):
+            total += np.fabs(data[i] - mean_value[i])
+        return total
+
+    def distance_maximo(self, data, mean_value):
+        total = 0
+        for i in range(0, len(data)):
+            aux = np.fabs(data[i] - mean_value[i])
+            if total < aux:
+                total = aux
+        return total
+
+    def distance_hamming(self, data, mean_value):
+        return (np.array(data) != np.array(mean_value)).mean()
 
     def my_kmedias(self, k, distance, iterations):
         centroids_list = []
@@ -261,7 +267,7 @@ class my_kmedias():
                 fill_list[group].extend(self.data[i])
             centroids_list2 = []
             for i in range(k):
-                self.groups.append(round(len(fill_list[i])/len(self.data[0])))
+                self.groups.append(round(len(fill_list[i]) / len(self.data[0])))
                 centroids_list2_ = []
                 for k1 in range(len(self.data[0])):
                     l = []
@@ -283,21 +289,21 @@ class my_kmedias():
 
         return centroids_list
 
+
 k = 4
 iterations = 4
 my = my_kmedias(data2)
 print("Number of elements: {}".format(len(data2)))
 print("Number of groups: {}".format(k))
 print("Number of iterations: {}".format(iterations))
-print("Euclidean distance: {}".format(my.my_kmedias(k, distance_euclidean, iterations)))
+print("Euclidean distance: {}".format(my.my_kmedias(k, my.distance_euclidean, iterations)))
 print("Groups: {}".format(my.groups))
-print("Manhattan distance: {}".format(my.my_kmedias(k, distance_manhattan, iterations)))
+print("Manhattan distance: {}".format(my.my_kmedias(k, my.distance_manhattan, iterations)))
 print("Groups: {}".format(my.groups))
-print("Maximo distance: {}".format(my.my_kmedias(k, distance_maximo, iterations)))
+print("Maximo distance: {}".format(my.my_kmedias(k, my.distance_maximo, iterations)))
 print("Groups: {}".format(my.groups))
-print("Hamming distance: {}".format(my.my_kmedias(k, distance_hamming, iterations)))
+print("Hamming distance: {}".format(my.my_kmedias(k, my.distance_hamming, iterations)))
 print("Groups: {}".format(my.groups))
-
 
 print()
 k = 3
@@ -305,12 +311,13 @@ iterations = 200
 print("Number of elements: {}".format(len(data['data'][:, 0:3])))
 print("Number of groups: {}".format(k))
 print("Number of iterations: {}".format(iterations))
-my2 = my_kmedias(data['data'][:, 0:4])
-print("Euclidean distance: {}".format(my2.my_kmedias(k, distance_euclidean, iterations)))
+my2 = my_kmedias(data['data'][:, 0:3])
+print("Euclidean distance: {}".format(my2.my_kmedias(k, my2.distance_euclidean, iterations)))
 print("Groups: {}".format(my2.groups))
-print("Manhattan distance: {}".format(my2.my_kmedias(k, distance_manhattan, iterations)))
+print("Manhattan distance: {}".format(my2.my_kmedias(k, my2.distance_manhattan, iterations)))
 print("Groups: {}".format(my2.groups))
-print("Maximo distance: {}".format(my2.my_kmedias(k, distance_maximo, iterations)))
+print("Maximo distance: {}".format(my2.my_kmedias(k, my2.distance_maximo, iterations)))
 print("Groups: {}".format(my2.groups))
-print("Hamming distance: {}".format(my2.my_kmedias(k, distance_hamming, iterations)))
+print("Hamming distance: {}".format(my2.my_kmedias(k, my2.distance_hamming, iterations)))
 print("Groups: {}".format(my2.groups))
+#print(simility_cosine(v1, w1))
