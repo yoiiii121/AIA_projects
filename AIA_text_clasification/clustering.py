@@ -31,11 +31,11 @@ twenty_new=fetch_20newsgroups(subset='train', categories=categories)
 #corpus = corpus3
 #lenguage = "spanish"
 lenguage = "english"
-limit = 100
+limit = 10
 corpus = twenty_new.data[:limit]
 
 file = open("output.txt","w+")
-file.write("Numbers of elements: {}\n\n".format(limit))
+file.write("Numbers of elements: {}\n\n".format(len(corpus)))
 file.close()
 
 # Simple model
@@ -99,7 +99,7 @@ def training(corpus, vectorizer):
 
     t0 = time.time()
     vectorizer_fit = vectorizer.fit_transform(corpus).toarray().tolist()
-    kmeans = KMeans(n_clusters=30, init= "k-means++", random_state=0, precompute_distances="auto", max_iter=100, algorithm = "auto" ,n_jobs = -2,tol=0.0).fit(vectorizer_fit)
+    kmeans = KMeans(n_clusters=3, init= "k-means++", random_state=0, precompute_distances="auto", max_iter=100, algorithm = "auto" ,n_jobs = -2,tol=0.0).fit(vectorizer_fit)
     label = kmeans.labels_
 
     print("Cluster centers:\n{}".format(kmeans.cluster_centers_))
@@ -210,82 +210,107 @@ def distance_hamming(data, mean_value):
     return (np.array(data) != np.array(mean_value)).mean()
 
 
-print("Number of elements: {}".format(len(data['data'])))
 
 
-def mean(list_elem):
-    total = 0
-    for i in list_elem:
-        total += i
-    return total / len(list_elem)
 
+class my_kmedias():
+    def __init__(self, data):
+        self.data = data
+        self.groups = []
+    def mean(self,list_elem):
+        total = 0
+        for i in list_elem:
+            total += i
+        return total / len(list_elem)
 
-def k_my_kmedias(k, data, distance, iterations):
-    centroids_list = []
-    repeat = True
-    group = 0
+    def my_kmedias(self, k, distance, iterations):
+        centroids_list = []
+        repeat = True
+        group = 0
 
-    # Inicializate
-    l = []
-    size = len(data) - 1
-    for i in range(k):
-        centroids_list_ = []
-        for j in range(len(data[0])):
-            aux = ra.randint(0, size)
-            boolean = True
-            while (boolean):
-                aux = ra.randint(0, size)
-                if aux not in l:
-                    l.append(aux)
-                    boolean = False
-            centroids_list_.append(round(float(data[aux][j]), 1))
-        centroids_list.append(centroids_list_)
-    # Repeat
-    cont = 0
-    while (repeat):
-        fill_list = []
-        for j in range(k):
-            fill_list.append([])
-        for i in range(len(data)):
-            minimum = 9999.
-            for j in range(k):
-
-                aux = distance(data[i], centroids_list[j])
-                if minimum > aux:
-                    minimum = aux
-                    group = j
-            fill_list[group].extend(data[i])
-        centroids_list2 = []
+        # Inicializate
+        l = []
+        size = len(self.data) - 1
         for i in range(k):
-            centroids_list2_ = []
-            for k1 in range(len(data[0])):
-                l = []
+            centroids_list_ = []
+            for j in range(len(self.data[0])):
+                aux = ra.randint(0, size)
+                boolean = True
+                while (boolean):
+                    aux = ra.randint(0, size)
+                    if aux not in l:
+                        l.append(aux)
+                        boolean = False
+                centroids_list_.append(round(float(self.data[aux][j]), 1))
+            centroids_list.append(centroids_list_)
+        # Repeat
+        cont = 0
+        while (repeat):
+            self.groups = []
+            fill_list = []
+            for j in range(k):
+                fill_list.append([])
+            for i in range(len(self.data)):
+                minimum = 9999.
+                for j in range(k):
 
-                for j in range(0, len(fill_list[i]), len(data[0]) + k1):
-                    l.append(round(fill_list[i][j], 1))
-                value = 0.0
-                if l:
-                    value = np.mean(l)
-                centroids_list2_.append(round(float(value), 1))
-            centroids_list2.append(centroids_list2_)
-        if iterations - 1 == cont:
-            repeat = False
-        if centroids_list == centroids_list2:
-            repeat = False
-        centroids_list = centroids_list2.copy()
+                    aux = distance(self.data[i], centroids_list[j])
+                    if minimum > aux:
+                        minimum = aux
+                        group = j
+                fill_list[group].extend(self.data[i])
+            centroids_list2 = []
+            for i in range(k):
+                self.groups.append(round(len(fill_list[i])/len(self.data[0])))
+                centroids_list2_ = []
+                for k1 in range(len(self.data[0])):
+                    l = []
 
-        cont += 1
+                    for j in range(0, len(fill_list[i]), len(self.data[0]) + k1):
+                        l.append(round(fill_list[i][j], 1))
+                    value = 0.0
+                    if l:
+                        value = np.mean(l)
+                    centroids_list2_.append(round(float(value), 1))
+                centroids_list2.append(centroids_list2_)
+            if iterations - 1 == cont:
+                repeat = False
+            if centroids_list == centroids_list2:
+                repeat = False
+            centroids_list = centroids_list2.copy()
 
-    return centroids_list
+            cont += 1
+
+        return centroids_list
+
+k = 4
+iterations = 4
+my = my_kmedias(data2)
+print("Number of elements: {}".format(len(data2)))
+print("Number of groups: {}".format(k))
+print("Number of iterations: {}".format(iterations))
+print("Euclidean distance: {}".format(my.my_kmedias(k, distance_euclidean, iterations)))
+print("Groups: {}".format(my.groups))
+print("Manhattan distance: {}".format(my.my_kmedias(k, distance_manhattan, iterations)))
+print("Groups: {}".format(my.groups))
+print("Maximo distance: {}".format(my.my_kmedias(k, distance_maximo, iterations)))
+print("Groups: {}".format(my.groups))
+print("Hamming distance: {}".format(my.my_kmedias(k, distance_hamming, iterations)))
+print("Groups: {}".format(my.groups))
 
 
-k = 2
-iterations = 3
-print("Euclidean distance: {}".format(k_my_kmedias(k, data2, distance_euclidean, iterations)))
-
+print()
 k = 3
-iterations = 6
-print("Euclidean distance: {}".format(k_my_kmedias(k, data['data'][:, 0:3], distance_euclidean, iterations)))
-print("Manhattan distance: {}".format(k_my_kmedias(k, data['data'][:, 0:3], distance_manhattan, iterations)))
-print("Maximo distance: {}".format(k_my_kmedias(k, data['data'][:, 0:3], distance_maximo, iterations)))
-print("Hamming distance: {}".format(k_my_kmedias(k, data['data'][:, 0:3], distance_hamming, iterations)))
+iterations = 200
+print("Number of elements: {}".format(len(data['data'][:, 0:3])))
+print("Number of groups: {}".format(k))
+print("Number of iterations: {}".format(iterations))
+my2 = my_kmedias(data['data'][:, 0:4])
+print("Euclidean distance: {}".format(my2.my_kmedias(k, distance_euclidean, iterations)))
+print("Groups: {}".format(my2.groups))
+print("Manhattan distance: {}".format(my2.my_kmedias(k, distance_manhattan, iterations)))
+print("Groups: {}".format(my2.groups))
+print("Maximo distance: {}".format(my2.my_kmedias(k, distance_maximo, iterations)))
+print("Groups: {}".format(my2.groups))
+print("Hamming distance: {}".format(my2.my_kmedias(k, distance_hamming, iterations)))
+print("Groups: {}".format(my2.groups))
