@@ -3,25 +3,38 @@ import clasification_text_1 as cla1
 import clasification_text_2 as cla2
 from sklearn.datasets import load_iris,fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
-
+import random
 # TASK 3
 
 categories = ['comp.graphics', 'comp.os.ms-windows.misc', 'comp.sys.ibm.pc.hardware',
               'comp.sys.mac.hardware', 'comp.windows.x', 'sci.space']
 twenty_new = fetch_20newsgroups(subset='train',remove=('headers', 'footers', 'quotes'), categories=categories)
 
-lenguage = "english"
-limit = 100
+twenty_new_test = fetch_20newsgroups(subset='test',remove=('headers', 'footers', 'quotes'), categories=categories)
+
+ndata  = len(twenty_new_test.data)
+test_new_query = twenty_new_test.data[round(random.random())*(ndata-1)]
+
+lenguaje = "english"
+limit = 200
+
 corpus_task3 = twenty_new.data[:limit]
 
+vectorizer_task3 = TfidfVectorizer(min_df=1, smooth_idf=False, use_idf=False)
+vectorizer_task3.fit(corpus_task3)
 file = open("output2.txt", "w+")
 file.write("Numbers of elements: {}\n\n".format(len(corpus_task3)))
 file.close()
 
+cla1.tfidf_configuration(vectorizer_task3, cla1.simple_configuation,lenguaje)
+cla2.training_and_predict(corpus_task3, vectorizer_task3,test_new_query)
+cla1.tfidf_configuration(vectorizer_task3, cla1.euclidean_configuation,lenguaje)
+cla2.training_and_predict(corpus_task3, vectorizer_task3,test_new_query)
+
 
 
 # TASK 2
-
+lenguaje = "spanish"
 corpus1 = ["Juan quiere comprar un coche. Ana no quiere comprar ningún coche"]
 corpus2 = ["Cargamento de oro dañado por el fuego",
            "la entrega de la plata llegó en un  camión de plata",
@@ -31,6 +44,8 @@ corpus3 = ["Éste texto no tiene nada que ver con los demás",
            "El cargamento de oro llegó en un camión. El cargamento de oro llegó en un camión. El cargamento de oro llegó en un camión",
            "Cargamentos de oro dañados por el fuego",
            "El cargamento de oro llegó en un camión"]
+query = "oro plata camión"
+
 
 corpus_task2 = corpus3  # you should change de corpus for other executions
 
@@ -40,31 +55,32 @@ file.close()
 
 
 vectorizer = TfidfVectorizer(min_df=1, smooth_idf=False, use_idf=False)
-
+vectorizer.fit(corpus_task2)
+# All configurations
 cla1.simple_configuation(vectorizer)
-cla1.training(corpus_task2, vectorizer)
+cla1.training(corpus_task2, vectorizer, query)
 
 cla1.euclidean_configuation(vectorizer)
-cla1.training(corpus_task2, vectorizer)
+cla1.training(corpus_task2, vectorizer, query)
 
-cla1.stop_words_configuration(vectorizer, cla1.simple_configuation)
-cla1.training(corpus_task2, vectorizer)
+cla1.stop_words_configuration(vectorizer, cla1.simple_configuation, lenguaje)
+cla1.training(corpus_task2, vectorizer, query)
 
-cla1.stop_words_configuration(vectorizer, cla1.euclidean_configuation)
-cla1.training(corpus_task2, vectorizer)
+cla1.stop_words_configuration(vectorizer, cla1.euclidean_configuation, lenguaje)
+cla1.training(corpus_task2, vectorizer, query)
 
+query = "oro plat camion"
+cla1.taking_root_words_configuration(vectorizer, cla1.simple_configuation, lenguaje)
+cla1.training(corpus_task2, vectorizer, query)
 
-cla1.taking_root_words_configuration(vectorizer, cla1.simple_configuation)
-cla1.training(corpus_task2, vectorizer)
+cla1.taking_root_words_configuration(vectorizer, cla1.euclidean_configuation, lenguaje)
+cla1.training(corpus_task2, vectorizer, query)
 
-cla1.taking_root_words_configuration(vectorizer, cla1.euclidean_configuation)
-cla1.training(corpus_task2, vectorizer)
+cla1.tfidf_configuration(vectorizer, cla1.simple_configuation, lenguaje)
+cla1.training(corpus_task2, vectorizer, query)
 
-cla1.tfidf_configuration(vectorizer, cla1.simple_configuation)
-cla1.training(corpus_task2, vectorizer)
-
-cla1.tfidf_configuration(vectorizer, cla1.euclidean_configuation)
-cla1.training(corpus_task2, vectorizer)
+cla1.tfidf_configuration(vectorizer, cla1.euclidean_configuation, lenguaje)
+cla1.training(corpus_task2, vectorizer, query)
 
 
 # TASK 1

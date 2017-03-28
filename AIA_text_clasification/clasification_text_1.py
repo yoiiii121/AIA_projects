@@ -1,16 +1,16 @@
-
 from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 
 
+# cosine simility of two vectors v and w
 def simility_cosine(v, w):
     total = 0.0
     total1 = 0.0
     total2 = 0.0
     for i in range(len(v)):
-        total += (v[i] * w[i])
-        total1 += v[i] ** 2
-        total2 += w[i] ** 2
+        total += v[i] * w[i]
+        total1 += v[i] * v[i]
+        total2 += w[i] * w[i]
     if total1 != 0.0:
         if total2 != 0.0:
             return total / total1 * total2
@@ -19,39 +19,38 @@ def simility_cosine(v, w):
     else:
         return 0.0
 
-def training(corpus, vectorizer):
+
+# Training corpus with a vectorizer configured, and using a query to determine the relevant text order
+def training(corpus, vectorizer, query):
     file = open("output1.txt", "a+")
 
     print("Final configuration of vectorizer:\n{}".format(vectorizer))
     file.write("\nFinal configuration of vectorizer:\n{}".format(vectorizer))
-
     vectorizer_ntrain = vectorizer.fit_transform(corpus).toarray()
+    vectorizer_query = vectorizer.transform([query]).toarray()
+
     similarity = {}
-    if(len(vectorizer_ntrain)>1):
-        for i in range(len(vectorizer_ntrain)-1):
-            for j in range(i+1,len(vectorizer_ntrain)):
-                similarity[simility_cosine(vectorizer_ntrain[i],vectorizer_ntrain[j])] = [i,j]
-        keys=sorted(similarity, reverse=True)
+    if len(vectorizer_ntrain) > 1:
+        for i in range(len(vectorizer_ntrain)):
+            for j in range(len(vectorizer_query)):
+                similarity[simility_cosine(vectorizer_ntrain[i], vectorizer_query[j])] = i
+        keys = sorted(similarity, reverse=True)
         cad = "["
         list_aux = []
         for i in keys:
             elem = similarity[i]
-            if elem[0] not in list_aux:
-                cad += str(elem[0]) + ", "
-                list_aux.append(elem[0])
-            elif elem[1] not in list_aux:
-                cad += str(elem[1]) + ", "
-                list_aux.append(elem[1])
+            if elem not in list_aux:
+                cad += str(elem) + ", "
+                list_aux.append(elem)
         cad = cad[:len(cad) - 2] + "]"
         print("Text order importance: {}".format(cad))
         file.write("Text order importance: \n{}".format(cad))
 
     print("ID vectorizer:\n{}".format(vectorizer_ntrain))
-    # file.write("ID vectorizer:\n{}".format(vectorizer_fit))
-
+    file.write("ID vectorizer:\n{}".format(vectorizer_ntrain))
 
     print("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
-    # file.write("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
+    file.write("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
 
     file.close()
     print()
@@ -66,8 +65,8 @@ def simple_configuation(vectorizer):
     return vectorizer
 
 
+# Simple model with normalized euclidean distance
 def euclidean_configuation(vectorizer):
-    # Simple model with normalized euclidean distance
     print("Using normalized euclidean distance")
     vectorizer.norm = 'l2'
     vectorizer.use_idf = False
@@ -75,27 +74,28 @@ def euclidean_configuation(vectorizer):
     return vectorizer
 
 
-def stop_words_configuration(vectorizer, configuration):
-    # Using stop words
+# Using stop words
+def stop_words_configuration(vectorizer, configuration, lenguaje):
     print("Using stop words")
-    vectorizer.stop_words = stopwords.words('spanish')
+    vectorizer.stop_words = stopwords.words(lenguaje)
     vectorizer = configuration(vectorizer)
     return vectorizer
 
 
 # Taking root words
-def taking_root_words_configuration(vectorizer, configuration):
+def taking_root_words_configuration(vectorizer, configuration, lenguaje):
     print("Taking root words")
-    vectorizer = stop_words_configuration(vectorizer, configuration)
-    stemmer = SnowballStemmer("spanish")
+    vectorizer = stop_words_configuration(vectorizer, configuration, lenguaje)
+    stemmer = SnowballStemmer(lenguaje)
     vectorizer.vocabulary = set([stemmer.stem(i) for i in vectorizer.get_feature_names()])
     return vectorizer
 
+
 # using weight tfidf
-def tfidf_configuration(vectorizer, configuration):
+def tfidf_configuration(vectorizer, configuration, lenguaje):
     print("Using tfidf")
-    vectorizer = taking_root_words_configuration(vectorizer, configuration)
+    vectorizer = taking_root_words_configuration(vectorizer, configuration, lenguaje)
     vectorizer.smooth_idf = True
     vectorizer.use_idf = True
-    vectorizer.sublinear_tf = True
+    vectorizer.sublinear_tf = False
     return vectorizer
