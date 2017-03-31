@@ -2,7 +2,7 @@ from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 
 
-# cosine simility of two vectors v and w
+# cosine similarity of two vectors v and w
 def simility_cosine(v, w):
     total = 0.0
     total1 = 0.0
@@ -31,6 +31,9 @@ def training(corpus, vectorizer, query):
 
     similarity = {}
     if len(vectorizer_ntrain) > 1:
+        print("Query:\n{}".format(query))
+        file.write("\nQuery:\n{}".format(query))
+
         for i in range(len(vectorizer_ntrain)):
             for j in range(len(vectorizer_query)):
                 similarity[simility_cosine(vectorizer_ntrain[i], vectorizer_query[j])] = i
@@ -44,13 +47,13 @@ def training(corpus, vectorizer, query):
                 list_aux.append(elem)
         cad = cad[:len(cad) - 2] + "]"
         print("Text order importance: {}".format(cad))
-        file.write("Text order importance: \n{}".format(cad))
+        file.write("\nText order importance: \n{}".format(cad))
 
     print("ID vectorizer:\n{}".format(vectorizer_ntrain))
-    file.write("ID vectorizer:\n{}".format(vectorizer_ntrain))
+    file.write("\nID vectorizer:\n{}".format(vectorizer_ntrain))
 
     print("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
-    file.write("Names process in the corpus:\n{}".format(vectorizer.get_feature_names()))
+    file.write("\nNames process in the corpus:\n{}".format(vectorizer.get_feature_names()))
 
     file.close()
     print()
@@ -87,6 +90,8 @@ def taking_root_words_configuration(vectorizer, configuration, lenguaje):
     print("Taking root words")
     vectorizer = stop_words_configuration(vectorizer, configuration, lenguaje)
     stemmer = SnowballStemmer(lenguaje)
+    vectorizer.stop_words = set([stemmer.stem(i) for i in vectorizer.stop_words])
+
     vectorizer.vocabulary = set([stemmer.stem(i) for i in vectorizer.get_feature_names()])
     return vectorizer
 
@@ -97,5 +102,5 @@ def tfidf_configuration(vectorizer, configuration, lenguaje):
     vectorizer = taking_root_words_configuration(vectorizer, configuration, lenguaje)
     vectorizer.smooth_idf = True
     vectorizer.use_idf = True
-    vectorizer.sublinear_tf = False
+    vectorizer.sublinear_tf = True
     return vectorizer

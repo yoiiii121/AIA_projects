@@ -20,7 +20,7 @@ ndata = len(twenty_new_test.data)
 test_new_query = twenty_new_test.data[round(random.random()) * (ndata - 1)]
 
 lenguaje = "english"
-limit = 200
+limit = 400
 
 corpus_task3 = twenty_new.data[:limit]
 

@@ -4,7 +4,7 @@ import clasification_text_1 as cla1
 
 
 # Training corpus with a vectorizer configured, and using a kmeans classification to determine the relevant
-#  text order and prediction of a random post in similary post of the corpus
+#  text order and prediction of a random post in similarity post of the corpus
 def training_and_predict(corpus, vectorizer, query):
     file = open("output2.txt", "a+")
 
@@ -13,12 +13,15 @@ def training_and_predict(corpus, vectorizer, query):
 
     vectorizer_ntrain = vectorizer.fit_transform(corpus).toarray()
     query_train = vectorizer.transform([query]).toarray()
-    kmeans = KMeans(n_clusters=30, init="k-means++", random_state=0, precompute_distances="auto", max_iter=100,
+    kmeans = KMeans(n_clusters=30, init="k-means++",copy_x = True, random_state=0, precompute_distances="auto", max_iter=100,
                     algorithm="auto", n_jobs=-2, tol=0.0).fit(vectorizer_ntrain)
+
     print("Final configuration of kmeans:\n{}".format(kmeans))
     file.write("\nFinal configuration of kmeans:\n{}".format(kmeans))
 
+
     kmeans_query = kmeans.predict(query_train)[0]
+    print("Score kmeans: \n{}".format(kmeans.score(vectorizer_ntrain)))
     print("kmeans Prediction of the random query:\n{}".format(kmeans_query))
     file.write("\n kmeans Prediction of the random query:\n{}".format(kmeans_query))
     list_aux = []
@@ -42,10 +45,10 @@ def training_and_predict(corpus, vectorizer, query):
     print("Names of the texts select in corpus:\n{}".format(query))
     file.write("Names of the text in select in the corpus:\n{}".format(query))
     for i in list_aux[0:4]:
-        print("POST {}".format(i))
-        print("Names of the texts select in corpus:\n{}".format(corpus[i]))
+        print("POST\n {}".format(i))
+        print("Containing of texts select in corpus:\n{}".format(corpus[i]))
         file.write("POST {}".format(i))
-        file.write("Names of the text in select in the corpus:\n{}".format(corpus[i]))
+        file.write("Containing text in select in the corpus:\n{}".format(corpus[i]))
     file.close()
     print()
     print()
